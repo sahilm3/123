@@ -23,7 +23,7 @@ class Router:
       message = await self.client.get_messages(serialx, ids=id)
       capx = message.message
       name = self.get_file_name(message)
-      url = f"{Config.DOMAIN}/{id}/{serialx}"
+      url = f"https://streambysahil.up.railway.app/{id}/{serialx}"
       punc = '''!()[]|{};:'="\,<>./?@#$%^&*~'''
       for ele in name:
         if ele in punc:
