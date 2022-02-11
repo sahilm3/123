@@ -51,7 +51,7 @@ async def download(event):
                 chatz,
                 file=event.message.media,caption=event.message.message,buttons=(
       [
-        Button.url('💾 Download', f'{Config.DOMAIN}/refer?{idx}/{chatz}/(Sahil_Nolia)~{namec}'),Button.url('📺 Watch', f'{Config.DOMAIN}/refer?{idx}/sahil/stream/{chatz}'),
+        Button.url('💾 Download', f'{Config.DOMAIN}/refer?{idx}/{chatz}/(Sahil_Nolia)~{namec}/end'),Button.url('📺 Watch', f'{Config.DOMAIN}/refer?{idx}/sahil/stream/{chatz}/end'),
       ],[
         Button.url('💞 Contact Sahil Nolia 💞', f'https://t.me/sahil_nolia')
       ]
