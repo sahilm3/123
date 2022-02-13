@@ -20,7 +20,7 @@ class Router:
       id_hex = request.match_info.get("id")
       serial = request.match_info.get("serial")
       id = int(id_hex)
-      serialx = int(str(serial))
+      serialx = int(float(serial))
       namebv = await self.client.get_entity(serialx)
       chname = namebv.title
       message = await self.client.get_messages(serialx, ids=id)
