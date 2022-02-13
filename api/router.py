@@ -4,6 +4,9 @@ import jinja2
 import re
 from telethon.client.downloads import MAX_CHUNK_SIZE
 from config import Config
+from telethon.tl import types, custom
+import base64
+import io
 
 class Router:
     
@@ -21,6 +24,58 @@ class Router:
       namebv = await self.client.get_entity(serialx)
       chname = namebv.title
       message = await self.client.get_messages(serialx, ids=id)
+      if not message or not message.file:
+            log.debug(f"no result for {file_id} in {chat_id}")
+            return web.Response(
+                status=410,
+                text="410: Gone. Access to the target resource is no longer available!",
+            )
+
+      if message.document:
+            media = message.document
+            thumbnails = media.thumbs
+            location = types.InputDocumentFileLocation
+      else:
+            media = message.photo
+            thumbnails = media.sizes
+            location = types.InputPhotoFileLocation
+
+      if not thumbnails:
+            color = tuple([random.randint(0, 255) for i in range(3)])
+            im = Image.new("RGB", (100, 100), color)
+            temp = io.BytesIO()
+            im.save(temp, "PNG")
+            body = temp.getvalue()
+      else:
+            thumb_pos = int(len(thumbnails) / 2)
+            try:
+                thumbnail: types.PhotoSize = self.client._get_thumb(
+                    thumbnails, thumb_pos
+                )
+            except Exception as e:
+                logging.debug(e)
+                thumbnail = None
+
+            if not thumbnail or isinstance(thumbnail, types.PhotoSizeEmpty):
+                return web.Response(
+                    status=410,
+                    text="410: Gone. Access to the target resource is no longer available!",
+                )
+
+            if isinstance(thumbnail, (types.PhotoCachedSize, types.PhotoStrippedSize)):
+                body = self.client._download_cached_photo_size(thumbnail, bytes)
+            else:
+                actual_file = location(
+                    id=media.id,
+                    access_hash=media.access_hash,
+                    file_reference=media.file_reference,
+                    thumb_size=thumbnail.type,
+                )
+                body = self.client.iter_download(actual_file)
+      async for chunk in body:
+            image_data = chunk
+      data = io.BytesIO(image_data)
+      encoded_img_data = base64.b64encode(data.getvalue())
       capx = message.message
       name = self.get_file_name(message)
       url = f"https://streambysahil.up.railway.app/{id}/{serialx}"
@@ -29,7 +84,7 @@ class Router:
         if ele in punc:
           name = name.replace(ele, "")
       namex1 = name.replace('  ', '_').replace(' ', '_').replace('mkv', '').replace('mp4', '').replace('webm', '').replace('-', '_')
-      return {'linkx' : url, 'titlexzz' : capx, 'serial' : chname, 'name' : namex1}
+      return {'linkx' : url, 'titlexzz' : capx, 'serial' : chname, 'name' : namex1, 'img_data' : encoded_img_data.decode('utf-8')}
 
     async def hello(self, request):
         return web.Response(text="Bot By Sahil Nolia")
